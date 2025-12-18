@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, Mail, Bell, AlertCircle } from 'lucide-react';
 import Button from './ui/Button';
@@ -28,8 +28,14 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
         .insert([{ email }]);
 
       if (error) {
+        // Handle specific Supabase error codes
         if (error.code === '23505') {
           setErrorMsg('This email is already on the waitlist!');
+        } else if (error.code === 'PGRST204' || error.message?.includes('column')) {
+          setErrorMsg('Database Error: Column "email" not found in table "waitlist". Check SQL Editor.');
+          console.error('FIX: Run "CREATE TABLE waitlist (id bigint primary key generated always as identity, email text unique, created_at timestamptz default now());" in Supabase SQL Editor.');
+        } else if (error.code === '42P01') {
+          setErrorMsg('Database Error: Table "waitlist" does not exist. Create it in Supabase.');
         } else if (error.code === 'MISSING_CONFIG') {
           setErrorMsg('Developer: Set Supabase URL & Key in environment variables.');
         } else {
@@ -106,10 +112,10 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2 text-red-400 text-xs bg-red-400/10 p-2 rounded border border-red-400/20"
+                      className="flex items-start gap-2 text-red-400 text-xs bg-red-400/10 p-3 rounded border border-red-400/20 text-left"
                     >
-                      <AlertCircle size={14} />
-                      {errorMsg}
+                      <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                      <div>{errorMsg}</div>
                     </motion.div>
                   )}
 
