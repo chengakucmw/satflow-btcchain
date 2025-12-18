@@ -23,19 +23,17 @@ const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose }) => {
     setErrorMsg(null);
 
     try {
-      // If supabase is the mock client from supabaseClient.ts, it will return the config error
       const { error } = await supabase
         .from('waitlist')
         .insert([{ email }]);
 
       if (error) {
-        // Handle specific Supabase error codes
         if (error.code === '23505') {
           setErrorMsg('This email is already on the waitlist!');
         } else if (error.code === 'MISSING_CONFIG') {
-          setErrorMsg('Developer Note: Supabase environment variables are missing.');
+          setErrorMsg('Developer: Set Supabase URL & Key in environment variables.');
         } else {
-          setErrorMsg(error.message || 'Something went wrong. Please try again.');
+          setErrorMsg(error.message || 'Connection error. Please try again.');
         }
       } else {
         setSubmitted(true);
